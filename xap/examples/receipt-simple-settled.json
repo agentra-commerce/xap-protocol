@@ -1,0 +1,73 @@
+{
+  "receipt_id": "rcpt_6d1e8f3a",
+  "settlement_id": "stl_4b7c9e2f",
+  "negotiation_id": "neg_8a2f4c1d",
+  "payer_agent": "agent_7f3a9b2c",
+  "outcome": "SETTLED",
+  "conditions_results": [
+    {
+      "condition_id": "cond_a1b2",
+      "type": "deterministic",
+      "check": "http_status_200",
+      "passed": true,
+      "verified_by": "engine",
+      "verified_at": "2026-03-15T14:30:28Z"
+    }
+  ],
+  "payouts": [
+    {
+      "agent_id": "agent_2d8e5f1a",
+      "role": "primary_executor",
+      "declared_share_bps": 10000,
+      "base_amount_minor_units": 500,
+      "final_amount_minor_units": 500,
+      "currency": "USD",
+      "status": "paid",
+      "adapter_reference": "ch_3Nq2Z3abc123"
+    }
+  ],
+  "execution_metrics": {
+    "execution_started_at": "2026-03-15T14:30:01Z",
+    "execution_completed_at": "2026-03-15T14:30:25Z",
+    "execution_duration_ms": 24000,
+    "verification_duration_ms": 3000,
+    "total_duration_ms": 27000,
+    "timeout_triggered": false,
+    "retries_attempted": 0
+  },
+  "reputation_impacts": [
+    {
+      "agent_id": "agent_2d8e5f1a",
+      "role_in_settlement": "payee",
+      "outcome_for_agent": "positive",
+      "success_rate_delta_bps": 1,
+      "dispute_filed": false
+    },
+    {
+      "agent_id": "agent_7f3a9b2c",
+      "role_in_settlement": "payer",
+      "outcome_for_agent": "positive",
+      "success_rate_delta_bps": 1,
+      "dispute_filed": false
+    }
+  ],
+  "verity_hash": "sha256:a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+  "chain_position": 47,
+  "chain_previous_hash": "sha256:0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba",
+  "adapter_used": "stripe",
+  "adapter_reference": "ch_3Nq2Z3abc123",
+  "finality_status": "within_reversal_window",
+  "reversal_window_ends_at": "2026-07-13T14:30:28Z",
+  "xap_version": "0.2.0",
+  "issued_at": "2026-03-15T14:30:30Z",
+  "signatures": {
+    "settlement_engine": "ed25519:ZW5naW5lX3NpZ25hdHVyZV9leGFtcGxl",
+    "payer": "ed25519:cGF5ZXJfc2lnbmF0dXJlX2V4YW1wbGU=",
+    "payees": [
+      {
+        "agent_id": "agent_2d8e5f1a",
+        "signature": "ed25519:cGF5ZWVfc2lnbmF0dXJlX2V4YW1wbGU="
+      }
+    ]
+  }
+}

@@ -25,6 +25,10 @@ SCHEMA_EXAMPLE_MAP = {
         "settlement-complex-split.json",
         "settlement-usdc-confirmation.json",
     ],
+    "execution-receipt.json": [
+        "receipt-simple-settled.json",
+        "receipt-partial-split.json",
+    ],
 }
 
 

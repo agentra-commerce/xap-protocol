@@ -189,4 +189,4 @@ def test_end_to_end_register_negotiate_lock_execute_verify_release_receipt():
 
     receipt = settlement.execution_receipt
     assert receipt is not None
-    assert receipt.to_dict()["final_state"]["state"] == "RELEASED"
+    assert receipt.to_dict()["outcome"] == "SETTLED"

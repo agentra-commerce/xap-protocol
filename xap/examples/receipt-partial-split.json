@@ -1,0 +1,137 @@
+{
+  "receipt_id": "rcpt_a2b3c4d5",
+  "settlement_id": "stl_d8e9f0a1",
+  "negotiation_id": "neg_c3d4e5f6",
+  "payer_agent": "agent_7f3a9b2c",
+  "outcome": "PARTIAL",
+  "conditions_results": [
+    {
+      "condition_id": "cond_c1d2",
+      "type": "deterministic",
+      "check": "output_delivered",
+      "passed": true,
+      "verified_by": "engine",
+      "verified_at": "2026-03-15T14:36:10Z"
+    },
+    {
+      "condition_id": "cond_e3f4",
+      "type": "probabilistic",
+      "check": "quality_score",
+      "passed": false,
+      "actual_value": 8200,
+      "threshold": 8500,
+      "operator": "gte",
+      "verified_by": "neutral_third_party",
+      "verified_by_agent_id": "agent_f5a6b7c8",
+      "verified_at": "2026-03-15T14:36:12Z",
+      "confidence_bps": 9500,
+      "evidence_hash": "sha256:abcdef12345678901234567890123456789012345678901234567890abcdef12"
+    },
+    {
+      "condition_id": "cond_a5b6",
+      "type": "probabilistic",
+      "check": "latency_ms",
+      "passed": true,
+      "actual_value": 3200,
+      "threshold": 5000,
+      "operator": "lte",
+      "verified_by": "engine",
+      "verified_at": "2026-03-15T14:36:10Z",
+      "confidence_bps": 10000
+    }
+  ],
+  "payouts": [
+    {
+      "agent_id": "agent_2d8e5f1a",
+      "role": "primary_executor",
+      "declared_share_bps": 6000,
+      "base_amount_minor_units": 6000,
+      "modifier_applied_bps": 9647,
+      "final_amount_minor_units": 5788,
+      "currency": "USD",
+      "status": "paid",
+      "adapter_reference": "ch_4Mp3Y4def456"
+    },
+    {
+      "agent_id": "agent_9c4b3e7d",
+      "role": "data_provider",
+      "declared_share_bps": 2500,
+      "base_amount_minor_units": 2500,
+      "modifier_applied_bps": 9647,
+      "final_amount_minor_units": 2412,
+      "currency": "USD",
+      "status": "paid",
+      "adapter_reference": "ch_5Nq4X5ghi789"
+    },
+    {
+      "agent_id": "agent_00000001",
+      "role": "platform",
+      "declared_share_bps": 1500,
+      "base_amount_minor_units": 1500,
+      "final_amount_minor_units": 1500,
+      "currency": "USD",
+      "status": "paid",
+      "adapter_reference": "ch_6Or5W6jkl012"
+    }
+  ],
+  "refunds": [
+    {
+      "agent_id": "agent_7f3a9b2c",
+      "amount_minor_units": 300,
+      "currency": "USD",
+      "reason": "partial_failure",
+      "adapter_reference": "re_7Ps6V7mno345"
+    }
+  ],
+  "execution_metrics": {
+    "execution_started_at": "2026-03-15T14:35:05Z",
+    "execution_completed_at": "2026-03-15T14:36:08Z",
+    "execution_duration_ms": 63000,
+    "verification_duration_ms": 4000,
+    "total_duration_ms": 67000,
+    "timeout_triggered": false,
+    "retries_attempted": 0
+  },
+  "reputation_impacts": [
+    {
+      "agent_id": "agent_2d8e5f1a",
+      "role_in_settlement": "payee",
+      "outcome_for_agent": "negative",
+      "success_rate_delta_bps": -2,
+      "quality_score_recorded_bps": 8200,
+      "dispute_filed": false
+    },
+    {
+      "agent_id": "agent_9c4b3e7d",
+      "role_in_settlement": "payee",
+      "outcome_for_agent": "neutral",
+      "success_rate_delta_bps": 0,
+      "dispute_filed": false
+    },
+    {
+      "agent_id": "agent_7f3a9b2c",
+      "role_in_settlement": "payer",
+      "outcome_for_agent": "neutral",
+      "success_rate_delta_bps": 0,
+      "dispute_filed": false
+    }
+  ],
+  "verity_hash": "sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+  "chain_position": 892,
+  "chain_previous_hash": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "adapter_used": "stripe",
+  "finality_status": "within_reversal_window",
+  "reversal_window_ends_at": "2026-07-13T14:36:15Z",
+  "org_id": "org_a1b2c3d4",
+  "xap_version": "0.2.0",
+  "issued_at": "2026-03-15T14:36:15Z",
+  "signatures": {
+    "settlement_engine": "ed25519:ZW5naW5lX3BhcnRpYWxfc2ln",
+    "payer": "ed25519:cGF5ZXJfcGFydGlhbF9zaWc=",
+    "payees": [
+      { "agent_id": "agent_2d8e5f1a", "signature": "ed25519:cGF5ZWUxX3BhcnRpYWxfc2ln" },
+      { "agent_id": "agent_9c4b3e7d", "signature": "ed25519:cGF5ZWUyX3BhcnRpYWxfc2ln" },
+      { "agent_id": "agent_00000001", "signature": "ed25519:cGxhdGZvcm1fcGFydGlhbF9zaWc=" }
+    ]
+  }
+}

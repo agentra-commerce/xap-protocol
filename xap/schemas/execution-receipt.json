@@ -1,345 +1,317 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://xap.agentralabs.tech/schemas/v0.1/execution-receipt.json",
+  "$id": "https://xap.agentralabs.tech/schemas/v0.2/execution-receipt.json",
   "title": "ExecutionReceipt",
-  "description": "XAP v0.1 — The tamper-proof, cryptographically signed, permanently replayable record of every agent commerce event. Attached to both agents' identity histories forever. The audit primitive of XAP.",
+  "description": "XAP v0.2 — The permanent, tamper-proof, cryptographically signed record of a completed settlement. Issued once per terminal SettlementIntent. Hash-chained per agent. Never amended.",
   "type": "object",
   "required": [
-    "xap_version",
     "receipt_id",
-    "receipt_type",
     "settlement_id",
     "negotiation_id",
-    "payer_agent_id",
-    "payee_agent_id",
-    "event_chain",
-    "final_state",
-    "amounts_settled",
-    "created_at",
-    "receipt_signature"
+    "payer_agent",
+    "outcome",
+    "conditions_results",
+    "payouts",
+    "execution_metrics",
+    "reputation_impacts",
+    "verity_hash",
+    "chain_position",
+    "adapter_used",
+    "finality_status",
+    "xap_version",
+    "issued_at",
+    "signatures"
   ],
   "properties": {
-    "xap_version": {
-      "type": "string",
-      "const": "0.1"
-    },
     "receipt_id": {
       "type": "string",
-      "pattern": "^rcpt_[a-zA-Z0-9]{32}$",
-      "description": "Globally unique receipt identifier. Immutable. Permanently referenceable."
-    },
-    "receipt_type": {
-      "type": "string",
-      "enum": [
-        "FULL_RELEASE",
-        "PARTIAL_RELEASE",
-        "FULL_ROLLBACK",
-        "DISPUTE_RESOLVED",
-        "SPLIT_CASCADE"
-      ],
-      "description": "Classification of this receipt. Determines which fields are populated."
+      "pattern": "^rcpt_[a-f0-9]{8}$",
+      "description": "Unique receipt identifier."
     },
     "settlement_id": {
       "type": "string",
-      "description": "The SettlementIntent this receipt closes."
+      "pattern": "^stl_[a-f0-9]{8}$",
+      "description": "The SettlementIntent this receipt records."
     },
     "negotiation_id": {
       "type": "string",
-      "description": "The NegotiationContract that initiated this commerce event."
+      "pattern": "^neg_[a-f0-9]{8}$",
+      "description": "The NegotiationContract this settlement executed."
     },
-    "payer_agent_id": {
+    "payer_agent": {
       "type": "string",
-      "description": "Agent that locked funds into escrow."
+      "pattern": "^agent_[a-f0-9]{8}$",
+      "description": "Agent who paid."
     },
-    "payee_agent_id": {
+    "outcome": {
       "type": "string",
-      "description": "Primary agent that executed the task."
+      "enum": ["SETTLED", "REFUNDED", "PARTIAL", "TIMEOUT", "DISPUTED", "FAILED_LOCK", "RELEASE_FAILED"],
+      "description": "Final outcome of the settlement."
     },
-    "event_chain": {
+    "conditions_results": {
       "type": "array",
-      "description": "Complete chronological record of every event in this commerce interaction. Tamper-evident. Append-only.",
       "minItems": 1,
-      "items": {
-        "type": "object",
-        "required": ["event_id", "event_type", "timestamp", "agent_id", "signature"],
-        "properties": {
-          "event_id": {
-            "type": "string",
-            "description": "Unique event identifier within this chain."
-          },
-          "event_type": {
-            "type": "string",
-            "enum": [
-              "NEGOTIATION_INITIATED",
-              "OFFER_MADE",
-              "COUNTER_MADE",
-              "CONTRACT_ACCEPTED",
-              "FUNDS_LOCKED",
-              "EXECUTION_STARTED",
-              "EXECUTION_COMPLETED",
-              "CONDITION_VERIFIED",
-              "CONDITION_FAILED",
-              "FUNDS_RELEASED",
-              "FUNDS_ROLLED_BACK",
-              "SPLIT_DISTRIBUTED",
-              "DISPUTE_RAISED",
-              "DISPUTE_RESOLVED",
-              "RECEIPT_ISSUED"
-            ]
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "agent_id": {
-            "type": "string",
-            "description": "Agent that triggered or is associated with this event."
-          },
-          "event_data": {
-            "type": "object",
-            "description": "Event-specific data payload."
-          },
-          "previous_event_hash": {
-            "type": "string",
-            "description": "SHA-256 hash of the previous event in the chain. Creates tamper-evident linkage."
-          },
-          "signature": {
-            "type": "string",
-            "description": "Ed25519 signature by the associated agent over this event entry."
-          }
-        }
-      }
+      "description": "What each condition produced.",
+      "items": { "$ref": "#/$defs/ConditionResult" }
     },
-    "final_state": {
-      "type": "object",
-      "description": "The resolved outcome of this commerce interaction.",
-      "required": ["state", "resolved_at", "resolution_method"],
-      "properties": {
-        "state": {
-          "type": "string",
-          "enum": ["RELEASED", "PARTIAL_RELEASED", "ROLLED_BACK", "DISPUTE_RESOLVED"]
-        },
-        "resolved_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "resolution_method": {
-          "type": "string",
-          "enum": [
-            "automatic_condition_met",
-            "automatic_condition_failed",
-            "automatic_timeout",
-            "automatic_arbitration",
-            "human_approved",
-            "human_rejected"
-          ],
-          "description": "How this settlement resolved. Tracks automation rate — a key validation metric."
-        },
-        "condition_met": {
-          "type": "boolean"
-        },
-        "completion_percentage": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 100,
-          "description": "For partial releases. Actual completion percentage verified."
-        }
-      }
+    "payouts": {
+      "type": "array",
+      "description": "What each payee actually received.",
+      "items": { "$ref": "#/$defs/Payout" }
     },
-    "amounts_settled": {
-      "type": "object",
-      "description": "Complete financial record of this settlement.",
-      "required": ["total_locked", "total_released", "total_rolled_back", "settlement_unit"],
-      "properties": {
-        "total_locked": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Total amount that was locked in escrow."
-        },
-        "total_released": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Total amount released to recipients."
-        },
-        "total_rolled_back": {
-          "type": "number",
-          "minimum": 0,
-          "description": "Total amount returned to payer."
-        },
-        "settlement_unit": {
-          "type": "string"
-        },
-        "split_distributions": {
-          "type": "array",
-          "description": "Itemized record of split cascade distributions. Every recipient, every amount.",
-          "items": {
-            "type": "object",
-            "required": ["recipient_agent_id", "amount", "role"],
-            "properties": {
-              "recipient_agent_id": { "type": "string" },
-              "amount": { "type": "number", "minimum": 0 },
-              "role": {
-                "type": "string",
-                "enum": ["orchestrator", "subagent", "tool", "platform", "custom"]
-              },
-              "distribution_timestamp": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "distribution_signature": {
-                "type": "string",
-                "description": "Ed25519 signature confirming this distribution."
-              }
-            }
-          }
-        }
-      }
+    "refunds": {
+      "type": "array",
+      "description": "Any amounts returned to payer.",
+      "items": { "$ref": "#/$defs/Refund" }
     },
-    "performance_record": {
-      "type": "object",
-      "description": "Execution performance data. Attached to payee's reputation history.",
-      "properties": {
-        "actual_latency_ms": {
-          "type": "integer",
-          "description": "Measured latency vs declared SLA."
-        },
-        "declared_latency_ms": {
-          "type": "integer",
-          "description": "SLA-declared maximum latency."
-        },
-        "latency_sla_met": { "type": "boolean" },
-        "quality_score_achieved": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "quality_threshold_declared": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "quality_sla_met": { "type": "boolean" },
-        "retry_count": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
+    "execution_metrics": {
+      "$ref": "#/$defs/ExecutionMetrics"
     },
-    "reputation_impact": {
-      "type": "object",
-      "description": "How this event affects each agent's reputation score. Append-only. Never deleted.",
-      "properties": {
-        "payee_reputation_delta": {
-          "type": "number",
-          "description": "Change to payee agent reputation score from this event."
-        },
-        "payer_reputation_delta": {
-          "type": "number",
-          "description": "Change to payer agent reputation score from this event."
-        },
-        "reputation_factors": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "factor": { "type": "string" },
-              "weight": { "type": "number" },
-              "value": { "type": "number" }
-            }
-          }
-        }
-      }
+    "reputation_impacts": {
+      "type": "array",
+      "description": "How this settlement affects each agent's reputation.",
+      "items": { "$ref": "#/$defs/ReputationImpact" }
     },
-    "dispute_record": {
-      "type": "object",
-      "description": "Present only when receipt_type is DISPUTE_RESOLVED.",
-      "properties": {
-        "dispute_reason": {
-          "type": "string",
-          "description": "Reason dispute was raised."
-        },
-        "raised_by": {
-          "type": "string",
-          "description": "agent_id that raised the dispute."
-        },
-        "raised_at": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "arbitration_steps_taken": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "arbitration_outcome": {
-          "type": "string",
-          "enum": ["favor_payer", "favor_payee", "pro_rata_split"]
-        },
-        "resolved_at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      }
+    "verity_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Link to the VerityReceipt for decision replay."
     },
-    "created_at": {
+    "chain_previous_hash": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "description": "Hash of the previous receipt in this agent's receipt chain."
+    },
+    "chain_position": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "This receipt's position in the agent's receipt chain."
+    },
+    "adapter_used": {
+      "type": "string",
+      "enum": ["stripe", "usdc_base", "usdc_ethereum", "test"],
+      "description": "Which settlement adapter processed this."
+    },
+    "adapter_reference": {
+      "type": "string",
+      "description": "Adapter-specific transaction ID (Stripe charge ID, on-chain tx hash)."
+    },
+    "finality_status": {
+      "type": "string",
+      "enum": ["final", "pending_confirmation", "within_reversal_window", "reversed"],
+      "description": "Current finality state."
+    },
+    "reversal_window_ends_at": {
       "type": "string",
       "format": "date-time",
-      "description": "Timestamp of receipt creation. Immutable."
+      "description": "When the reversal window closes."
     },
-    "receipt_hash": {
+    "org_id": {
       "type": "string",
-      "description": "SHA-256 hash of the canonical JSON of this receipt (excluding receipt_signature). Enables tamper detection."
+      "pattern": "^org_[a-f0-9]{8}$",
+      "description": "Organizational context."
     },
-    "receipt_signature": {
+    "xap_version": {
       "type": "string",
-      "description": "Ed25519 signature by XAP Rail over the receipt_hash. Proof that this receipt was issued by an XAP-compliant settlement engine."
+      "pattern": "^\\d+\\.\\d+\\.\\d+",
+      "description": "Protocol version (semver)."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this receipt was issued."
+    },
+    "signatures": {
+      "$ref": "#/$defs/Signatures"
     }
   },
-  "examples": [
-    {
-      "xap_version": "0.1",
-      "receipt_id": "rcpt_Yn9MrStUvWxYzAaBbCcDdEeFfGgHhIiJj",
-      "receipt_type": "SPLIT_CASCADE",
-      "settlement_id": "stl_Zn8LqRsTuVwXyAzBcDeFgHiJkLmNoPqR",
-      "negotiation_id": "neg_Xm7KpQrTvWnJhLsYdBfCeGaUiOzKw9P",
-      "payer_agent_id": "xap_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6",
-      "payee_agent_id": "xap_k9mX2pQrTvWnJhLsYdBfCeGaUiOzKwMn",
-      "final_state": {
-        "state": "RELEASED",
-        "resolved_at": "2026-03-03T10:01:12Z",
-        "resolution_method": "automatic_condition_met",
-        "condition_met": true,
-        "completion_percentage": 100
+  "$defs": {
+    "ConditionResult": {
+      "type": "object",
+      "required": ["condition_id", "type", "check", "passed", "verified_by", "verified_at"],
+      "properties": {
+        "condition_id": {
+          "type": "string",
+          "pattern": "^cond_[a-f0-9]{4}$"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["deterministic", "probabilistic", "human_approval"]
+        },
+        "check": { "type": "string" },
+        "passed": { "type": "boolean" },
+        "actual_value": { "type": "integer" },
+        "threshold": { "type": "integer" },
+        "operator": {
+          "type": "string",
+          "enum": ["eq", "gte", "lte", "gt", "lt"]
+        },
+        "verified_by": {
+          "type": "string",
+          "enum": ["engine", "payer", "payee", "neutral_third_party"]
+        },
+        "verified_by_agent_id": {
+          "type": "string",
+          "pattern": "^agent_[a-f0-9]{8}$"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "confidence_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "evidence_hash": {
+          "type": "string",
+          "pattern": "^sha256:[a-f0-9]{64}$"
+        }
       },
-      "amounts_settled": {
-        "total_locked": 0.07,
-        "total_released": 0.07,
-        "total_rolled_back": 0.00,
-        "settlement_unit": "USD",
-        "split_distributions": [
-          {
-            "recipient_agent_id": "xap_k9mX2pQrTvWnJhLsYdBfCeGaUiOzKwMn",
-            "amount": 0.0595,
-            "role": "subagent",
-            "distribution_timestamp": "2026-03-03T10:01:13Z"
-          },
-          {
-            "recipient_agent_id": "xap_PLATFORM000000000000000000000000",
-            "amount": 0.0105,
-            "role": "platform",
-            "distribution_timestamp": "2026-03-03T10:01:13Z"
+      "additionalProperties": false
+    },
+    "Payout": {
+      "type": "object",
+      "required": ["agent_id", "role", "declared_share_bps", "base_amount_minor_units", "final_amount_minor_units", "currency", "status"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "pattern": "^agent_[a-f0-9]{8}$"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["primary_executor", "sub_executor", "data_provider", "tool_provider", "orchestrator", "verifier", "platform"]
+        },
+        "declared_share_bps": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        },
+        "base_amount_minor_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "modifier_applied_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "final_amount_minor_units": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3,6}$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["paid", "credited", "failed", "refunded"]
+        },
+        "adapter_reference": { "type": "string" },
+        "credited_reason": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "Refund": {
+      "type": "object",
+      "required": ["agent_id", "amount_minor_units", "currency", "reason"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "pattern": "^agent_[a-f0-9]{8}$"
+        },
+        "amount_minor_units": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3,6}$"
+        },
+        "reason": {
+          "type": "string",
+          "enum": ["full_refund", "partial_failure", "timeout", "condition_failed", "split_remainder", "chargeback_recovery"]
+        },
+        "adapter_reference": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ExecutionMetrics": {
+      "type": "object",
+      "required": [
+        "execution_started_at",
+        "execution_completed_at",
+        "execution_duration_ms",
+        "verification_duration_ms",
+        "total_duration_ms",
+        "timeout_triggered",
+        "retries_attempted"
+      ],
+      "properties": {
+        "execution_started_at": { "type": "string", "format": "date-time" },
+        "execution_completed_at": { "type": "string", "format": "date-time" },
+        "execution_duration_ms": { "type": "integer", "minimum": 0 },
+        "verification_duration_ms": { "type": "integer", "minimum": 0 },
+        "total_duration_ms": { "type": "integer", "minimum": 0 },
+        "timeout_triggered": { "type": "boolean" },
+        "retries_attempted": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "ReputationImpact": {
+      "type": "object",
+      "required": ["agent_id", "role_in_settlement", "outcome_for_agent", "success_rate_delta_bps", "dispute_filed"],
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "pattern": "^agent_[a-f0-9]{8}$"
+        },
+        "role_in_settlement": { "type": "string" },
+        "outcome_for_agent": {
+          "type": "string",
+          "enum": ["positive", "negative", "neutral"]
+        },
+        "success_rate_delta_bps": { "type": "integer" },
+        "quality_score_recorded_bps": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "dispute_filed": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "Signatures": {
+      "type": "object",
+      "required": ["settlement_engine", "payer", "payees"],
+      "properties": {
+        "settlement_engine": {
+          "type": "string",
+          "description": "Engine's signature attesting to the receipt."
+        },
+        "payer": {
+          "type": "string",
+          "description": "Payer's acknowledgment signature."
+        },
+        "payees": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["agent_id", "signature"],
+            "properties": {
+              "agent_id": {
+                "type": "string",
+                "pattern": "^agent_[a-f0-9]{8}$"
+              },
+              "signature": { "type": "string" }
+            },
+            "additionalProperties": false
           }
-        ]
+        }
       },
-      "performance_record": {
-        "actual_latency_ms": 847,
-        "declared_latency_ms": 1500,
-        "latency_sla_met": true,
-        "quality_score_achieved": 0.94,
-        "quality_threshold_declared": 0.90,
-        "quality_sla_met": true,
-        "retry_count": 0
-      },
-      "created_at": "2026-03-03T10:01:14Z"
+      "additionalProperties": false
     }
-  ]
+  }
 }

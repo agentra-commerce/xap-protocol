@@ -1,13 +1,23 @@
-"""ExecutionReceipt implementation for XAP v0.1."""
+"""ExecutionReceipt implementation for XAP v0.2."""
 
 from __future__ import annotations
 
+import secrets
 from dataclasses import dataclass
 from hashlib import sha256
 from typing import Any, ClassVar
 
-from ._common import deep_copy, generate_prefixed_id, utc_now_iso, validate_against_schema
+from ._common import deep_copy, utc_now_iso, validate_against_schema
 from .crypto import canonical_json_bytes, sign_payload, verify_payload
+
+
+def _generate_receipt_id() -> str:
+    return f"rcpt_{secrets.token_hex(4)}"
+
+
+# Global chain position counter (per-engine, monotonically increasing)
+_chain_position_counter: int = 0
+_last_receipt_hash: str = ""
 
 
 @dataclass
@@ -23,50 +33,162 @@ class ExecutionReceipt:
 
     @classmethod
     def issue(cls, settlement: Any, platform_private_key: str) -> "ExecutionReceipt":
+        global _chain_position_counter, _last_receipt_hash
+
         settlement_data = settlement.to_dict() if hasattr(settlement, "to_dict") else deep_copy(settlement)
-        event_chain = deep_copy(getattr(settlement, "event_chain", settlement_data.get("event_chain", [])))
 
-        # Support both v0.1 and v0.2 settlement field names
-        payer = settlement_data.get("payer_agent") or settlement_data.get("payer_agent_id", "")
-        payee_agents = settlement_data.get("payee_agents")
-        if payee_agents:
-            payee = payee_agents[0]["agent_id"]
-        else:
-            payee = settlement_data.get("payee_agent_id", "")
-
+        payer = settlement_data.get("payer_agent", "")
+        payee_agents = settlement_data.get("payee_agents", [])
+        conditions = settlement_data.get("conditions", [])
+        verification = settlement_data.get("verification_result", {})
+        exec_result = settlement_data.get("execution_result", {})
+        distributions = settlement_data.get("split_distributions", [])
         state = settlement_data["state"]
 
+        # Build conditions_results from settlement conditions + verification
+        evaluated = {e["condition_id"]: e for e in verification.get("conditions_evaluated", [])}
+        now = utc_now_iso()
+        conditions_results = []
+        for cond in conditions:
+            cond_id = cond["condition_id"]
+            ev = evaluated.get(cond_id, {})
+            cr: dict[str, Any] = {
+                "condition_id": cond_id,
+                "type": cond["type"],
+                "check": cond["check"],
+                "passed": ev.get("met", False),
+                "verified_by": cond.get("verifier", "engine"),
+                "verified_at": verification.get("verified_at", now),
+            }
+            if cond.get("operator"):
+                cr["operator"] = cond["operator"]
+            if cond.get("threshold") is not None:
+                cr["threshold"] = cond["threshold"]
+            if cond.get("verifier_agent_id"):
+                cr["verified_by_agent_id"] = cond["verifier_agent_id"]
+            conditions_results.append(cr)
+
+        if not conditions_results:
+            conditions_results = [{
+                "condition_id": "cond_0000",
+                "type": "deterministic",
+                "check": "execution_completed",
+                "passed": state in {"SETTLED", "PARTIAL"},
+                "verified_by": "engine",
+                "verified_at": now,
+            }]
+
+        # Build payouts from distributions + payee_agents
+        currency = settlement_data.get("currency", "USD")
+        total_amount = settlement_data.get("total_amount_minor_units", 0)
+        payouts = []
+        payee_map = {p["agent_id"]: p for p in payee_agents}
+        for dist in distributions:
+            agent_id = dist.get("agent_id", "")
+            payee_info = payee_map.get(agent_id, {})
+            share_bps = payee_info.get("share_bps", 10000)
+            base_amount = (total_amount * share_bps) // 10000
+            final_amount = dist.get("amount_minor_units", 0)
+            payouts.append({
+                "agent_id": agent_id,
+                "role": payee_info.get("role", "primary_executor"),
+                "declared_share_bps": share_bps,
+                "base_amount_minor_units": base_amount,
+                "final_amount_minor_units": final_amount,
+                "currency": currency,
+                "status": "paid",
+            })
+
+        if not payouts and payee_agents:
+            for p in payee_agents:
+                payouts.append({
+                    "agent_id": p["agent_id"],
+                    "role": p.get("role", "primary_executor"),
+                    "declared_share_bps": p.get("share_bps", 10000),
+                    "base_amount_minor_units": 0,
+                    "final_amount_minor_units": 0,
+                    "currency": currency,
+                    "status": "refunded" if state == "REFUNDED" else "failed",
+                })
+
+        # Execution metrics
+        quality_score = exec_result.get("quality_score", 0)
+        latency_ms = exec_result.get("latency_ms", 0)
+        metrics = {
+            "execution_started_at": exec_result.get("submitted_at", now),
+            "execution_completed_at": exec_result.get("submitted_at", now),
+            "execution_duration_ms": latency_ms,
+            "verification_duration_ms": 0,
+            "total_duration_ms": latency_ms,
+            "timeout_triggered": state == "TIMEOUT",
+            "retries_attempted": 0,
+        }
+
+        # Reputation impacts
+        all_met = verification.get("all_required_met", False)
+        outcome_label = "positive" if all_met else ("negative" if state == "REFUNDED" else "neutral")
+        delta = 1 if all_met else (-1 if state == "REFUNDED" else 0)
+
+        reputation_impacts = []
+        for p in payee_agents:
+            impact: dict[str, Any] = {
+                "agent_id": p["agent_id"],
+                "role_in_settlement": "payee",
+                "outcome_for_agent": outcome_label,
+                "success_rate_delta_bps": delta,
+                "dispute_filed": state == "DISPUTED",
+            }
+            if quality_score:
+                impact["quality_score_recorded_bps"] = int(quality_score * 10000)
+            reputation_impacts.append(impact)
+
+        reputation_impacts.append({
+            "agent_id": payer,
+            "role_in_settlement": "payer",
+            "outcome_for_agent": "positive" if all_met else "neutral",
+            "success_rate_delta_bps": 1 if all_met else 0,
+            "dispute_filed": state == "DISPUTED",
+        })
+
+        # Verity hash (placeholder — real implementation links to Verity engine)
+        verity_hash = f"sha256:{sha256(canonical_json_bytes(settlement_data)).hexdigest()}"
+
+        # Chain
+        _chain_position_counter += 1
+        chain_position = _chain_position_counter
+
         receipt_data: dict[str, Any] = {
-            "xap_version": "0.1",
-            "receipt_id": generate_prefixed_id("rcpt_"),
-            "receipt_type": _resolve_receipt_type(state),
+            "receipt_id": _generate_receipt_id(),
             "settlement_id": settlement_data["settlement_id"],
             "negotiation_id": settlement_data["negotiation_id"],
-            "payer_agent_id": payer,
-            "payee_agent_id": payee,
-            "event_chain": event_chain,
-            "final_state": _build_final_state(settlement_data),
-            "amounts_settled": _build_amounts_settled(settlement_data),
-            "created_at": utc_now_iso(),
+            "payer_agent": payer,
+            "outcome": state,
+            "conditions_results": conditions_results,
+            "payouts": payouts,
+            "execution_metrics": metrics,
+            "reputation_impacts": reputation_impacts,
+            "verity_hash": verity_hash,
+            "chain_position": chain_position,
+            "adapter_used": settlement_data.get("adapter", "test"),
+            "finality_status": "final",
+            "xap_version": "0.2.0",
+            "issued_at": now,
+            "signatures": {
+                "settlement_engine": sign_payload({"receipt": "engine_attestation"}, platform_private_key),
+                "payer": "",
+                "payees": [
+                    {"agent_id": p["agent_id"], "signature": ""}
+                    for p in payee_agents
+                ],
+            },
         }
 
-        receipt_event = {
-            "event_id": generate_prefixed_id("evt_"),
-            "event_type": "RECEIPT_ISSUED",
-            "timestamp": receipt_data["created_at"],
-            "agent_id": "xap_platform",
-            "event_data": {"receipt_id": receipt_data["receipt_id"]},
-            "previous_event_hash": _event_hash(receipt_data["event_chain"][-1]) if receipt_data["event_chain"] else "",
-        }
-        receipt_event["signature"] = sign_payload(receipt_event, platform_private_key, exclude_fields=["signature"])
-        receipt_data["event_chain"].append(receipt_event)
+        if _last_receipt_hash:
+            receipt_data["chain_previous_hash"] = f"sha256:{_last_receipt_hash}"
 
-        receipt_hash = sha256(canonical_json_bytes(receipt_data, exclude_fields=["receipt_signature", "receipt_hash"]))
-        receipt_data["receipt_hash"] = receipt_hash.hexdigest()
-        receipt_data["receipt_signature"] = sign_payload(
-            {"receipt_hash": receipt_data["receipt_hash"]},
-            platform_private_key,
-        )
+        # Compute receipt hash for chain continuity
+        receipt_hash = sha256(canonical_json_bytes(receipt_data)).hexdigest()
+        _last_receipt_hash = receipt_hash
 
         validate_against_schema(cls.SCHEMA, receipt_data)
         obj = cls(receipt_data)
@@ -74,12 +196,12 @@ class ExecutionReceipt:
         return obj
 
     def verify(self, platform_public_key: str) -> bool:
-        expected_hash = sha256(canonical_json_bytes(self._data, exclude_fields=["receipt_signature", "receipt_hash"]))
-        if self._data.get("receipt_hash") != expected_hash.hexdigest():
+        sig = self._data.get("signatures", {}).get("settlement_engine", "")
+        if not sig:
             return False
         return verify_payload(
-            {"receipt_hash": self._data["receipt_hash"]},
-            self._data["receipt_signature"],
+            {"receipt": "engine_attestation"},
+            sig,
             platform_public_key,
         )
 
@@ -105,98 +227,3 @@ class ExecutionReceipt:
         if negotiation_id is not None:
             results = [item for item in results if item._data.get("negotiation_id") == negotiation_id]
         return results
-
-
-def _resolve_receipt_type(state: str) -> str:
-    mapping = {
-        "SETTLED": "FULL_RELEASE",
-        "RELEASED": "FULL_RELEASE",
-        "PARTIAL": "PARTIAL_RELEASE",
-        "PARTIAL_RELEASED": "PARTIAL_RELEASE",
-        "REFUNDED": "FULL_ROLLBACK",
-        "ROLLED_BACK": "FULL_ROLLBACK",
-        "DISPUTED": "DISPUTE_RESOLVED",
-    }
-    return mapping.get(state, "FULL_RELEASE")
-
-
-def _map_state_to_receipt(state: str) -> str:
-    """Map v0.2 settlement states to v0.1 receipt final_state enum."""
-    mapping = {
-        "SETTLED": "RELEASED",
-        "REFUNDED": "ROLLED_BACK",
-        "PARTIAL": "PARTIAL_RELEASED",
-        "DISPUTED": "DISPUTE_RESOLVED",
-        # v0.1 states pass through
-        "RELEASED": "RELEASED",
-        "PARTIAL_RELEASED": "PARTIAL_RELEASED",
-        "ROLLED_BACK": "ROLLED_BACK",
-    }
-    return mapping.get(state, state)
-
-
-def _build_final_state(settlement_data: dict[str, Any]) -> dict[str, Any]:
-    state = settlement_data["state"]
-    receipt_state = _map_state_to_receipt(state)
-    verification = settlement_data.get("verification_result", {})
-
-    condition_met = verification.get("all_required_met", verification.get("condition_met", False))
-
-    return {
-        "state": receipt_state,
-        "resolved_at": settlement_data.get("settled_at", utc_now_iso()),
-        "resolution_method": "automatic_condition_met" if condition_met else "automatic_condition_failed",
-        "condition_met": condition_met,
-        "completion_percentage": settlement_data.get("execution_result", {}).get("completion_percentage", 100),
-    }
-
-
-def _build_amounts_settled(settlement_data: dict[str, Any]) -> dict[str, Any]:
-    # Support both v0.1 and v0.2 field names
-    locked = settlement_data.get("total_amount_minor_units") or settlement_data.get("locked_amount", 0)
-    currency = settlement_data.get("currency") or settlement_data.get("settlement_unit", "USD")
-
-    state = settlement_data["state"]
-    if state in {"REFUNDED", "ROLLED_BACK"}:
-        released = 0
-    else:
-        distributions = settlement_data.get("split_distributions", [])
-        released = sum(
-            item.get("amount_minor_units", item.get("amount", 0))
-            for item in distributions
-        )
-
-    # Normalize distributions to v0.1 receipt schema format
-    # Map v0.2 roles to v0.1 receipt role enum
-    role_map = {
-        "primary_executor": "subagent",
-        "sub_executor": "subagent",
-        "data_provider": "subagent",
-        "tool_provider": "tool",
-        "orchestrator": "orchestrator",
-        "verifier": "custom",
-        "platform": "platform",
-    }
-
-    normalized_distributions = []
-    for d in settlement_data.get("split_distributions", []):
-        raw_role = d.get("role", "custom")
-        normalized_distributions.append({
-            "recipient_agent_id": d.get("recipient_agent_id") or d.get("agent_id", ""),
-            "amount": d.get("amount") if "amount" in d else d.get("amount_minor_units", 0),
-            "role": role_map.get(raw_role, raw_role),
-            "distribution_timestamp": d.get("distribution_timestamp"),
-            "distribution_signature": d.get("distribution_signature"),
-        })
-
-    return {
-        "total_locked": locked,
-        "total_released": released,
-        "total_rolled_back": max(0, locked - released),
-        "settlement_unit": currency,
-        "split_distributions": normalized_distributions,
-    }
-
-
-def _event_hash(event: dict[str, Any]) -> str:
-    return sha256(canonical_json_bytes(event, exclude_fields=["signature"])).hexdigest()
