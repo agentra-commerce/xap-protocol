@@ -18,7 +18,7 @@ AI agents can think, reason, code, search, and orchestrate. But when two agents 
 
 No standard way to negotiate a price. No way to escrow funds against a conditional outcome. No way to split payment across five agents that contributed to one result. No way to prove, months later, exactly why a settlement resolved the way it did.
 
-Stripe and OpenAI built ACP for agent-assisted shopping. Google built AP2 for human-authorized agent payments. Coinbase built x402 for pay-per-request API access.
+Stripe and OpenAI built [ACP](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) for agent-assisted shopping. Google built [AP2](https://github.com/google-agentic-commerce/AP2) for human-authorized agent payments. Coinbase built [x402](https://github.com/coinbase/x402) for pay-per-request API access.
 
 All of them assume a human in the loop. A human clicking buy. A human signing a mandate. A human approving a charge.
 
