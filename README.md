@@ -354,6 +354,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 ## Community
 
+**Spec homepage:** [xap-protocol.org](https://xap-protocol.org)
 **Discord:** [Join @agentralabs](https://discord.gg/agentralabs)
 **X / Twitter:** [Follow @agentralab](https://x.com/agentralab)
 **Email:** [hello@agentralabs.tech](mailto:hello@agentralabs.tech)
