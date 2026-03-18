@@ -1,0 +1,56 @@
+{
+  "manifest_id": "mnf_4a7b2c1d",
+  "agent_id": "01abcdef01abcdef01abcdef01abcdef",
+  "xap_version": "0.2",
+  "issued_at": "2026-03-17T00:00:00Z",
+  "expires_at": "2026-04-17T00:00:00Z",
+  "registry_url": "https://app.zexrail.com",
+
+  "signature": {
+    "algorithm": "Ed25519",
+    "public_key": "xap_pub_4a7b2c1d_production_key",
+    "value": "base64url_encoded_production_signature",
+    "signed_fields": [
+      "manifest_id", "agent_id", "issued_at",
+      "expires_at", "capabilities", "economic_terms"
+    ]
+  },
+
+  "capabilities": [{
+    "name": "code_review",
+    "version": "1.0.0",
+    "attestation": {
+      "total_settlements": 847,
+      "success_rate_bps": 9430,
+      "dispute_rate_bps": 47,
+      "avg_latency_ms": 1240,
+      "window_days": 90,
+      "receipt_hashes": [
+        "vrt_b5cc0769de8d5b05a88d5ed9aba4ed104c02b5fb160e2a4269f1405cefdd074f",
+        "vrt_941d734aee2cf46f19301e9e6d79138338464ef0be7a07e495bdc8429afc8fcd",
+        "vrt_a774ae8886bbe7e727c4977be2a7d231748ae92e1adb351059c420df657b71cc"
+      ],
+      "verification_endpoint": "https://verity.zexrail.com/receipts"
+    },
+    "sla": {
+      "max_latency_ms": 3000,
+      "availability_bps": 9950
+    }
+  }],
+
+  "economic_terms": {
+    "accepted_currencies": ["USD", "EUR", "GBP"],
+    "accepted_condition_types": ["deterministic", "probabilistic"],
+    "accepted_adapters": ["stripe", "usdc"],
+    "min_amount_minor": 100,
+    "max_amount_minor": 1000000,
+    "chargeback_policy": "PROPORTIONAL",
+    "min_negotiation_rounds": 1,
+    "max_concurrent": 50
+  },
+
+  "federation_hints": {
+    "also_registered_at": [],
+    "identity_portable_proof": "xap_port_proof_placeholder"
+  }
+}

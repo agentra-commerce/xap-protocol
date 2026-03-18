@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xap.agentralabs.tech/schemas/v0.2/agent-manifest.json",
+  "title": "AgentManifest",
+  "description": "XAP v0.2 — Pre-negotiation trust credential. Signed, Verity-backed. The sixth XAP primitive.",
+  "type": "object",
+  "required": [
+    "manifest_id", "agent_id", "xap_version",
+    "issued_at", "expires_at", "signature",
+    "capabilities", "economic_terms"
+  ],
+  "properties": {
+    "manifest_id": {
+      "type": "string",
+      "pattern": "^mnf_[0-9a-f]{8}$",
+      "description": "Unique manifest identifier."
+    },
+    "agent_id": {
+      "type": "string",
+      "pattern": "^(agent_)?[a-f0-9]{8,64}$",
+      "description": "Agent identifier. Matches the agent's registered XAP identity."
+    },
+    "xap_version": {
+      "type": "string",
+      "const": "0.2",
+      "description": "XAP protocol version this manifest conforms to."
+    },
+    "issued_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this manifest was issued. ISO 8601 UTC."
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this manifest expires. Must re-sign after expiry."
+    },
+    "registry_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "The XAP registry this agent is registered with."
+    },
+
+    "signature": {
+      "type": "object",
+      "required": ["algorithm", "public_key", "value", "signed_fields"],
+      "description": "Ed25519 signature binding this manifest to the agent's key.",
+      "properties": {
+        "algorithm": {
+          "type": "string",
+          "const": "Ed25519",
+          "description": "Signing algorithm. Always Ed25519."
+        },
+        "public_key": {
+          "type": "string",
+          "description": "Agent's Ed25519 public key."
+        },
+        "value": {
+          "type": "string",
+          "description": "Base64url-encoded Ed25519 signature."
+        },
+        "signed_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of top-level fields included in the signature."
+        }
+      }
+    },
+
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Capabilities with Verity-backed attestations.",
+      "items": {
+        "type": "object",
+        "required": ["name", "version", "attestation"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Capability name (e.g., 'code_review')."
+          },
+          "version": {
+            "type": "string",
+            "description": "Capability version."
+          },
+          "attestation": {
+            "type": "object",
+            "required": [
+              "total_settlements", "success_rate_bps",
+              "window_days", "receipt_hashes"
+            ],
+            "description": "Verity-backed performance attestation.",
+            "properties": {
+              "total_settlements": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total completed settlements for this capability."
+              },
+              "success_rate_bps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "description": "Success rate in basis points (9430 = 94.30%)."
+              },
+              "dispute_rate_bps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "description": "Dispute rate in basis points."
+              },
+              "avg_latency_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Average response latency in milliseconds."
+              },
+              "window_days": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Attestation window in days."
+              },
+              "receipt_hashes": {
+                "type": "array",
+                "description": "Up to 10 recent Verity receipt hashes. Publicly replayable.",
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "pattern": "^vrt_[0-9a-f]{64}$"
+                }
+              },
+              "verification_endpoint": {
+                "type": "string",
+                "format": "uri",
+                "description": "Endpoint for replaying Verity receipts."
+              }
+            }
+          },
+          "sla": {
+            "type": "object",
+            "description": "Performance guarantees.",
+            "properties": {
+              "max_latency_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Maximum response time in milliseconds."
+              },
+              "availability_bps": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000,
+                "description": "Uptime guarantee in basis points (9950 = 99.50%)."
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "economic_terms": {
+      "type": "object",
+      "required": [
+        "accepted_currencies", "accepted_condition_types",
+        "min_amount_minor", "max_amount_minor"
+      ],
+      "description": "Economic parameters for negotiation.",
+      "properties": {
+        "accepted_currencies": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Currencies this agent accepts (ISO 4217 or token)."
+        },
+        "accepted_condition_types": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["deterministic", "probabilistic", "human_approval"]
+          },
+          "description": "Verification condition types this agent supports."
+        },
+        "accepted_adapters": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Settlement adapters this agent supports."
+        },
+        "min_amount_minor": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Minimum transaction amount in minor currency units."
+        },
+        "max_amount_minor": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum transaction amount in minor currency units."
+        },
+        "chargeback_policy": {
+          "type": "string",
+          "enum": ["PROPORTIONAL", "FIRST_SETTLED", "LAST_SETTLED", "OPERATOR_DEFINED"],
+          "description": "How chargebacks are distributed."
+        },
+        "min_negotiation_rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20,
+          "description": "Minimum negotiation rounds before auto-reject."
+        },
+        "max_concurrent": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Maximum concurrent negotiations."
+        }
+      }
+    },
+
+    "federation_hints": {
+      "type": "object",
+      "description": "Optional. Seeds v1.1 cross-registry discovery.",
+      "properties": {
+        "also_registered_at": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "Other XAP registries where this agent is registered."
+        },
+        "identity_portable_proof": {
+          "type": "string",
+          "description": "Ed25519 signed attestation for cross-registry identity portability."
+        }
+      }
+    }
+  }
+}

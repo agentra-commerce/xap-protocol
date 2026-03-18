@@ -16,6 +16,10 @@ EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
 INVALID_DIR = Path(__file__).parent / "invalid"
 
 SCHEMA_EXAMPLE_MAP = {
+    "agent-manifest.json": [
+        "agent-manifest-simple.json",
+        "agent-manifest-production.json",
+    ],
     "agent-identity.json": [
         "agent-identity-simple.json",
         "agent-identity-complex.json",
@@ -52,6 +56,7 @@ SCHEMA_EXAMPLE_MAP = {
 
 # Maps schema file names to their invalid example directories
 SCHEMA_INVALID_DIR_MAP = {
+    "agent-manifest.json": "agent-manifest",
     "agent-identity.json": "agent-identity",
     "negotiation-contract.json": "negotiation-contract",
     "settlement-intent.json": "settlement-intent",

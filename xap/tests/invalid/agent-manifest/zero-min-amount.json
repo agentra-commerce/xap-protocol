@@ -1,0 +1,10 @@
+{
+  "manifest_id": "mnf_00000001",
+  "agent_id": "a1b2c3d4",
+  "xap_version": "0.2",
+  "issued_at": "2026-03-17T00:00:00Z",
+  "expires_at": "2026-04-17T00:00:00Z",
+  "signature": {"algorithm": "Ed25519", "public_key": "key", "value": "sig", "signed_fields": ["manifest_id"]},
+  "capabilities": [{"name": "test", "version": "1.0.0", "attestation": {"total_settlements": 0, "success_rate_bps": 0, "window_days": 90, "receipt_hashes": []}}],
+  "economic_terms": {"accepted_currencies": ["USD"], "accepted_condition_types": ["deterministic"], "min_amount_minor": 0, "max_amount_minor": 50000}
+}

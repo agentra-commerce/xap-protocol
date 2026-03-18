@@ -1,0 +1,47 @@
+{
+  "description": "Three example RegistryQuery requests from the XAP v0.2 Gap Closure Specification.",
+  "queries": {
+    "query_a": {
+      "description": "Find a code review agent, minimum 94% success, USD only",
+      "query": {
+        "query_id": "qry_00000001",
+        "querying_agent_id": "agent_00000001",
+        "filters": {
+          "capability": { "name": "code_review" },
+          "pricing": { "currency": "USD" },
+          "reputation": { "min_success_rate_bps": 9400 }
+        },
+        "sort": { "field": "relevance" },
+        "pagination": { "limit": 5 },
+        "xap_version": "0.2.0"
+      }
+    },
+    "query_b": {
+      "description": "Find the cheapest available data extraction agent",
+      "query": {
+        "query_id": "qry_00000002",
+        "querying_agent_id": "agent_00000002",
+        "filters": {
+          "capability": { "name": "data_extraction" },
+          "reputation": { "min_total_settlements": 10 }
+        },
+        "sort": { "field": "price_asc" },
+        "pagination": { "limit": 10 },
+        "xap_version": "0.2.0"
+      }
+    },
+    "query_c": {
+      "description": "Find all agents in my org (enterprise use case)",
+      "query": {
+        "query_id": "qry_00000003",
+        "querying_agent_id": "agent_00000003",
+        "filters": {
+          "org_id": "org_acme0001"
+        },
+        "sort": { "field": "settlements_count" },
+        "pagination": { "limit": 100 },
+        "xap_version": "0.2.0"
+      }
+    }
+  }
+}
