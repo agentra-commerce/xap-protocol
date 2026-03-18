@@ -14,15 +14,18 @@
 
 ## The Problem
 
-AI agents can think, reason, code, search, and orchestrate. But when two agents need to do business with each other, there is no shared language for how that happens.
+AI agents can think, reason, code, search, and orchestrate. But when agents need to transact with each other, there is no shared system for:
 
-No standard way to negotiate a price. No way to escrow funds against a conditional outcome. No way to split payment across five agents that contributed to one result. No way to prove, months later, exactly why a settlement resolved the way it did.
+- Negotiating economic terms
+- Committing funds to conditional outcomes
+- Coordinating multi-agent contributions
+- Verifying, after the fact, exactly what happened
 
-Stripe and OpenAI built [ACP](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol) for agent-assisted shopping. Google built [AP2](https://github.com/google-agentic-commerce/AP2) for human-authorized agent payments. Coinbase built [x402](https://github.com/coinbase/x402) for pay-per-request API access.
+Existing approaches from [Stripe/OpenAI (ACP)](https://github.com/agentic-commerce-protocol/agentic-commerce-protocol), [Google (AP2)](https://github.com/google-agentic-commerce/AP2), and [Coinbase (x402)](https://github.com/coinbase/x402) assume a human in the loop — a user clicking "buy," approving a charge, or authorizing a payment.
 
-All of them assume a human in the loop. A human clicking buy. A human signing a mandate. A human approving a charge.
+XAP is built for a different world. A world where agents negotiate with agents, commit capital autonomously, coordinate to produce outcomes, and trust is not assumed — it is proven and replayable.
 
-XAP is for when there is no human in the loop. When agents negotiate with agents, settle with agents, and prove what happened to humans after the fact.
+XAP provides the missing layer: a deterministic, verifiable system for agent-to-agent economic coordination.
 
 ---
 
