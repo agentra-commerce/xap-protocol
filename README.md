@@ -129,7 +129,8 @@ An agent evaluating a potential counterparty reads its `AgentIdentity` and sees:
                          |
 +------------------------v-------------------------+
 |               Verity Truth Engine                |
-|              (Rust, proprietary)                 |
+|          (open source, Rust, MIT)                |
+|    github.com/agentralabs/verity-engine          |
 +------------------------+-------------------------+
                          |
 +------------------------v-------------------------+
@@ -278,7 +279,7 @@ All schemas are JSON Schema Draft 2020-12, located in `/xap/schemas/`.
 | Layer | What | License |
 |---|---|---|
 | `xap-protocol` (this repo) | The open protocol. Schemas, spec, examples. | MIT |
-| `verity-engine` | The truth engine. Deterministic replay of every settlement decision. | Proprietary |
+| `verity-engine` | The truth engine. Deterministic replay of every settlement decision. | MIT |
 | `xap-sdk` | Python SDK. `pip install xap-sdk`. Build XAP-native agents in minutes. | MIT |
 | Agentra Rail | Production implementation. Settlement at scale, enterprise dashboards, Verity explorer. | Commercial |
 
@@ -343,7 +344,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 | v0.1 Draft schemas (5 primitives) | Complete |
 | v0.2 Schema hardening + AgentManifest + RegistryQuery | Complete |
 | Protocol specification document (PDF) | Next |
-| Verity truth engine (Rust) | Complete — proprietary |
+| Verity truth engine (Rust, open source) | Complete — `verity-engine` repo |
 | Python SDK (`pip install xap-sdk`) | Live — v0.4.0 on PyPI |
 | Validation test suite | 115 tests passing |
 | v1.0 Specification lock | Target: Q3 2026 |
