@@ -1,0 +1,62 @@
+name: Edge Case Report
+description: Report a protocol edge case or unexpected scenario
+title: "[Edge Case] "
+labels: ["edge-case"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - negotiation
+        - settlement
+        - receipt
+        - verity
+        - discovery
+        - identity
+        - adapter
+        - cross-cutting
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - S1 - Critical (financial loss or data corruption)
+        - S2 - High (incorrect settlement or broken invariant)
+        - S3 - Medium (degraded experience or incorrect state)
+        - S4 - Low (cosmetic or unlikely)
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: What happens? Be specific about the sequence of events.
+      placeholder: "Agent A sends an offer, Agent B accepts, but the offer has already expired..."
+    validations:
+      required: true
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk
+      description: What goes wrong if this is not handled?
+      placeholder: "Funds could be locked permanently without resolution..."
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_resolution
+    attributes:
+      label: Proposed Resolution
+      description: How should the protocol handle this?
+    validations:
+      required: false
+  - type: input
+    id: schema
+    attributes:
+      label: Affected Schema(s)
+      description: Which schema(s) are affected?
+      placeholder: "settlement-intent, execution-receipt"
+    validations:
+      required: false

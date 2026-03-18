@@ -27,14 +27,27 @@ XAP is a protocol. Changing a field name or adding a required property can break
 
 ### 4. Edge Case Submissions
 
-Edge cases are especially valuable. Every edge case found before v1.0 prevents a breaking change later.
+Edge cases are tracked in `docs/edge-cases.md` with a formal lifecycle:
 
-When submitting an edge case, include:
+1. **DISCOVERED** — identified during development, testing, or community feedback
+2. **DOCUMENTED** — added to edge-cases.md with scenario, risk, and proposed resolution
+3. **ANALYZED** — resolution validated against protocol invariants
+4. **RESOLVED** — resolution implemented in schemas, SDK, or engine
+5. **TESTED** — validation test covers this edge case
+6. **DEPLOYED** — fix is in a released version
 
-- **Category**: Negotiation, Settlement, Split, Identity, Time, Adapter, Security, or Verity
-- **Severity**: S1 (funds at risk), S2 (incorrect behavior), S3 (unexpected but workable), S4 (inconvenient)
-- **Description**: What happens, step by step
-- **Expected behavior**: What should happen
+To submit an edge case, open an issue using the Edge Case template.
+
+Severity guide:
+- **S1 (Critical):** Could cause financial loss or data corruption
+- **S2 (High):** Could cause incorrect settlement or broken invariant
+- **S3 (Medium):** Could cause degraded experience or incorrect state
+- **S4 (Low):** Cosmetic or unlikely scenario
+
+When submitting, include:
+- **Category**: negotiation, settlement, receipt, verity, discovery, identity, adapter, or cross-cutting
+- **Scenario**: What happens, step by step
+- **Risk**: What goes wrong if unhandled
 - **Proposed resolution**: Your suggestion (optional but appreciated)
 
 ### What We Are Not Looking For Right Now

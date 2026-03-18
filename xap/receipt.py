@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import secrets
-from dataclasses import dataclass
+import threading
+from dataclasses import dataclass, field
 from hashlib import sha256
 from typing import Any, ClassVar
 
@@ -15,9 +16,36 @@ def _generate_receipt_id() -> str:
     return f"rcpt_{secrets.token_hex(4)}"
 
 
-# Global chain position counter (per-engine, monotonically increasing)
-_chain_position_counter: int = 0
-_last_receipt_hash: str = ""
+class ReceiptChain:
+    """Thread-safe receipt chain state.
+
+    Each instance tracks its own chain position counter and last receipt hash,
+    eliminating the previous global mutable state that was unsafe in
+    multi-worker environments.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._chain_position_counter: int = 0
+        self._last_receipt_hash: str = ""
+
+    def advance(self) -> tuple[int, str]:
+        """Atomically increment chain position and return (position, previous_hash)."""
+        with self._lock:
+            self._chain_position_counter += 1
+            position = self._chain_position_counter
+            previous_hash = self._last_receipt_hash
+            return position, previous_hash
+
+    def set_last_hash(self, receipt_hash: str) -> None:
+        """Update the last receipt hash after computing it."""
+        with self._lock:
+            self._last_receipt_hash = receipt_hash
+
+
+# Default chain instance (per-process). For multi-worker deployments,
+# each worker gets its own ReceiptChain instance automatically.
+_default_chain = ReceiptChain()
 
 
 @dataclass
@@ -32,8 +60,14 @@ class ExecutionReceipt:
         return self._data["receipt_id"]
 
     @classmethod
-    def issue(cls, settlement: Any, platform_private_key: str) -> "ExecutionReceipt":
-        global _chain_position_counter, _last_receipt_hash
+    def issue(
+        cls,
+        settlement: Any,
+        platform_private_key: str,
+        chain: ReceiptChain | None = None,
+    ) -> "ExecutionReceipt":
+        if chain is None:
+            chain = _default_chain
 
         settlement_data = settlement.to_dict() if hasattr(settlement, "to_dict") else deep_copy(settlement)
 
@@ -139,7 +173,7 @@ class ExecutionReceipt:
                 "dispute_filed": state == "DISPUTED",
             }
             if quality_score:
-                impact["quality_score_recorded_bps"] = int(quality_score * 10000)
+                impact["quality_score_recorded_bps"] = round(quality_score * 10000)
             reputation_impacts.append(impact)
 
         reputation_impacts.append({
@@ -153,9 +187,8 @@ class ExecutionReceipt:
         # Verity hash (placeholder — real implementation links to Verity engine)
         verity_hash = f"sha256:{sha256(canonical_json_bytes(settlement_data)).hexdigest()}"
 
-        # Chain
-        _chain_position_counter += 1
-        chain_position = _chain_position_counter
+        # Chain (thread-safe via ReceiptChain instance)
+        chain_position, previous_hash = chain.advance()
 
         receipt_data: dict[str, Any] = {
             "receipt_id": _generate_receipt_id(),
@@ -183,12 +216,12 @@ class ExecutionReceipt:
             },
         }
 
-        if _last_receipt_hash:
-            receipt_data["chain_previous_hash"] = f"sha256:{_last_receipt_hash}"
+        if previous_hash:
+            receipt_data["chain_previous_hash"] = f"sha256:{previous_hash}"
 
         # Compute receipt hash for chain continuity
         receipt_hash = sha256(canonical_json_bytes(receipt_data)).hexdigest()
-        _last_receipt_hash = receipt_hash
+        chain.set_last_hash(receipt_hash)
 
         validate_against_schema(cls.SCHEMA, receipt_data)
         obj = cls(receipt_data)

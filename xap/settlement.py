@@ -73,7 +73,7 @@ class SettlementIntent:
             total_amount = negotiation_data["pricing"]["amount_minor_units"]
             currency = negotiation_data["pricing"]["currency"]
         else:
-            total_amount = int(negotiation_data["offer"]["offered_rate"] * 100)
+            total_amount = round(negotiation_data["offer"]["offered_rate"] * 100)
             currency = negotiation_data["offer"].get("settlement_unit", "USD")
 
         # Build conditions from SLA
@@ -310,7 +310,7 @@ class SettlementIntent:
             # Map check to result field
             check = cond.get("check", "")
             if check == "quality_score":
-                actual = int(result.get("quality_score", 0) * 10000)
+                actual = round(result.get("quality_score", 0) * 10000)
             elif check == "latency_ms":
                 actual = result.get("latency_ms", 0)
             else:

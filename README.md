@@ -130,7 +130,7 @@ An agent evaluating a potential counterparty reads its `AgentIdentity` and sees:
 +------------------------v-------------------------+
 |               Verity Truth Engine                |
 |          (open source, Rust, MIT)                |
-|    github.com/agentralabs/verity-engine          |
+|    github.com/agentra-commerce/verity-engine          |
 +------------------------+-------------------------+
                          |
 +------------------------v-------------------------+
@@ -368,7 +368,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
   author = {Agentra Labs},
   year   = {2026},
   doi    = {10.5281/zenodo.18944370},
-  url    = {https://github.com/agentralabs/xap-protocol}
+  url    = {https://github.com/agentra-commerce/xap-protocol}
 }
 ```
 
