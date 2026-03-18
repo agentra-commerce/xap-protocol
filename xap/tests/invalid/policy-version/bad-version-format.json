@@ -1,0 +1,16 @@
+{
+  "version": "0.2",
+  "content_hash": "sha256:8a2c30cc2ee19aff36c5d7f761e2e2250037aa9a5ea3520b12e0f4c88e210a6b",
+  "effective_from": "2026-03-01T00:00:00Z",
+  "effective_until": null,
+  "rules": {
+    "condition_types": ["deterministic"],
+    "outcome_states": ["SUCCESS"],
+    "max_counter_rounds": 20,
+    "bps_total_required": 10000,
+    "money_unit": "minor_units",
+    "chargeback_options": ["full_refund"],
+    "signing_algorithm": "Ed25519",
+    "schema_format": "json-schema-2020-12"
+  }
+}

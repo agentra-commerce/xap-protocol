@@ -1,0 +1,105 @@
+{
+  "verity_id": "vrt_a1b2c3d4",
+  "settlement_id": "stl_4b7c9e2f",
+  "receipt_id": "rcpt_6d1e8f3a",
+  "decision_type": "condition_verification",
+  "decision_timestamp": "2026-03-15T14:30:28Z",
+  "input_state": {
+    "settlement_state": "PENDING_VERIFICATION",
+    "contract_terms": {
+      "pricing": { "amount_minor_units": 500, "currency": "USD" },
+      "sla": { "max_latency_ms": 5000, "min_quality_score_bps": 8500 },
+      "conditions": [
+        { "condition_id": "cond_a1b2", "type": "probabilistic", "check": "sentiment_positive", "required": true }
+      ]
+    },
+    "agent_states": [
+      { "agent_id": "agent_2d8e5f1a", "role": "primary_executor" },
+      { "agent_id": "agent_7f3a9b2c", "role": "payer" }
+    ],
+    "condition_values": [
+      {
+        "condition_id": "cond_a1b2",
+        "measured_value": 8700,
+        "measurement_source": "external_verifier_nlp",
+        "measurement_timestamp": "2026-03-15T14:30:27Z",
+        "verifier_attestation": {
+          "verifier_id": "verifier_sentiment_nlp_v3",
+          "verifier_public_key": "MCowBQYDK2VwAyEAExternalVerifierKeyBase64",
+          "signed_at": "2026-03-15T14:30:27Z",
+          "payload_hash": "sha256:c3ab8ff13720e8ad9047dd39466b3c8974e592c2fa383d4a3960714caef0c4f2",
+          "signature": "base64url_ed25519_sig_over_payload_hash_placeholder_value_here"
+        }
+      }
+    ],
+    "elapsed_ms": 24000
+  },
+  "rules_applied": {
+    "rules_version": "0.2.0",
+    "rules_hash": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    "applicable_rules": [
+      {
+        "rule_id": "cond_check_probabilistic",
+        "rule_description": "Probabilistic condition passes if confidence exceeds threshold",
+        "evaluated": true,
+        "result": "pass"
+      },
+      {
+        "rule_id": "all_required_conditions",
+        "rule_description": "Settlement succeeds if all required conditions pass",
+        "evaluated": true,
+        "result": "pass"
+      }
+    ],
+    "policy_content_hash": "sha256:8a2c30cc2ee19aff36c5d7f761e2e2250037aa9a5ea3520b12e0f4c88e210a6b",
+    "policy_url": "https://api.zexrail.com/xap/v1/policies/xap-v0.2"
+  },
+  "computation": {
+    "steps": [
+      {
+        "step_number": 1,
+        "operation": "evaluate_condition",
+        "inputs": { "condition_id": "cond_a1b2", "measured_value": 8700, "threshold_bps": 8500 },
+        "rule_applied": "cond_check_probabilistic",
+        "output": { "passed": true, "confidence_bps": 8700 },
+        "deterministic": false
+      },
+      {
+        "step_number": 2,
+        "operation": "evaluate_all_required",
+        "inputs": { "required_conditions": ["cond_a1b2"], "results": [true] },
+        "rule_applied": "all_required_conditions",
+        "output": { "all_passed": true, "settlement_decision": "release_funds" },
+        "deterministic": true
+      }
+    ],
+    "total_steps": 2,
+    "computation_duration_ms": 5
+  },
+  "outcome": {
+    "decision": "release_funds",
+    "settlement_state_after": "SETTLED",
+    "outcome_classification": "SUCCESS",
+    "amounts_affected": [
+      { "agent_id": "agent_2d8e5f1a", "amount_minor_units": 500, "direction": "credit" },
+      { "agent_id": "agent_7f3a9b2c", "amount_minor_units": 500, "direction": "debit" }
+    ]
+  },
+  "replay_hash": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "confidence_bps": 8700,
+  "chain_position": 1,
+  "xap_version": "0.2.0",
+  "verity_engine_version": "0.2.0",
+  "verity_signature": "ed25519:dmVyaXR5X3NpbXBsZV9zaWduYXR1cmU=",
+  "key_id": "key_a1b2c3d4",
+  "timestamp_authority": {
+    "tsa_serial": "1234567890",
+    "tsa_issuer": "CN=DigiCert Timestamp Authority, O=DigiCert Inc, C=US",
+    "tsa_timestamp": "2026-03-15T14:30:29Z",
+    "tsa_token_hash": "sha256:fe2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c"
+  },
+  "causality": {
+    "workflow_id": "wf_e5f6a7b8",
+    "depth": 0
+  }
+}

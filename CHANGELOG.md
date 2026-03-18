@@ -4,6 +4,28 @@ All notable changes to the XAP protocol will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — March 2026
+
+### Added
+- `verity-receipt.json`: Five new optional fields closing institutional-grade
+  audit gaps:
+  - `timestamp_authority`: RFC 3161 TSA token for independent temporal proof
+  - `rules_applied.policy_content_hash`: SHA-256 of governing policy document
+  - `rules_applied.policy_url`: Where to retrieve and verify the policy
+  - `key_id`: Identifies the specific signing key for historical lookup
+  - `causality`: Links receipt to its position in a multi-agent workflow chain
+  - `condition_results[].verifier_attestation`: Cryptographic attestation from
+    external probabilistic verifiers
+- `policy-version.json`: New schema for content-addressed XAP policy documents
+- `agent-key-history.json`: New schema for agent Ed25519 key rotation history
+- Three new example files
+
+### Migration
+All new fields are optional. No existing receipt validation breaks.
+Systems that do not implement the new fields produce v0.2-compatible receipts.
+Systems that implement all fields produce v0.3-compatible receipts.
+v0.2 and v0.3 receipts are accepted by any XAP-compliant verifier.
+
 ## [0.2.0] - In Progress
 
 ### Added — v0.2 Gap Closure

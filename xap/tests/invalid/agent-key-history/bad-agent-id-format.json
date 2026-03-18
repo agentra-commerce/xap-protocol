@@ -1,0 +1,10 @@
+{
+  "agent_id": "bad",
+  "keys": [
+    {
+      "key_id": "key_00000001",
+      "public_key": "MCowBQYDK2VwAyEAOriginalKeyBase64UrlEncodedHere",
+      "active_from": "2026-01-15T00:00:00Z"
+    }
+  ]
+}

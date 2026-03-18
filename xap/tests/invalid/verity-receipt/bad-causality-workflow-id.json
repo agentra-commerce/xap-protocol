@@ -1,0 +1,20 @@
+{
+  "verity_id": "vrt_a1b2c3d4",
+  "settlement_id": "stl_4b7c9e2f",
+  "decision_type": "condition_verification",
+  "decision_timestamp": "2026-03-15T14:30:28Z",
+  "input_state": {"settlement_state": "PENDING_VERIFICATION", "contract_terms": {"pricing": {"amount_minor_units": 500, "currency": "USD"}, "sla": {"max_latency_ms": 5000}, "conditions": [{"condition_id": "cond_a1b2", "type": "deterministic"}]}, "agent_states": [{"agent_id": "agent_2d8e5f1a", "role": "primary_executor"}]},
+  "rules_applied": {"rules_version": "0.2.0", "rules_hash": "sha256:abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890", "applicable_rules": [{"rule_id": "cond_check", "rule_description": "Check condition", "evaluated": true, "result": "pass"}]},
+  "computation": {"steps": [{"step_number": 1, "operation": "evaluate_condition", "inputs": {"condition_id": "cond_a1b2"}, "output": {"passed": true}, "deterministic": true}], "total_steps": 1, "computation_duration_ms": 3},
+  "outcome": {"decision": "release_funds", "settlement_state_after": "SETTLED", "outcome_classification": "SUCCESS"},
+  "replay_hash": "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "confidence_bps": 10000,
+  "chain_position": 1,
+  "xap_version": "0.2.0",
+  "verity_engine_version": "0.2.0",
+  "verity_signature": "ed25519:dmVyaXR5X3NpbXBsZV9zaWduYXR1cmU=",
+  "causality": {
+    "workflow_id": "badwf",
+    "depth": 0
+  }
+}

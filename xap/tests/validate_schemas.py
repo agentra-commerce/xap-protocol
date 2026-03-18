@@ -42,6 +42,13 @@ SCHEMA_EXAMPLE_MAP = {
     "verity-receipt.json": [
         "verity-simple-deterministic.json",
         "verity-complex-partial.json",
+        "verity-receipt-with-tsa.json",
+    ],
+    "policy-version.json": [
+        "policy-version-xap-v0.2.json",
+    ],
+    "agent-key-history.json": [
+        "agent-key-rotation.json",
     ],
     "registry-query.json": [
         "registry-query-simple.json",
@@ -62,6 +69,8 @@ SCHEMA_INVALID_DIR_MAP = {
     "settlement-intent.json": "settlement-intent",
     "execution-receipt.json": "execution-receipt",
     "verity-receipt.json": "verity-receipt",
+    "policy-version.json": "policy-version",
+    "agent-key-history.json": "agent-key-history",
     "registry-query.json": "registry-query",
     "registry-response.json": "registry-response",
 }

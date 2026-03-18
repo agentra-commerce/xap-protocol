@@ -102,6 +102,63 @@
       "type": "string",
       "pattern": "^ed25519:.+$",
       "description": "Engine's Ed25519 signature attesting to this capture."
+    },
+    "timestamp_authority": {
+      "type": "object",
+      "description": "RFC 3161 timestamp token from an independent TSA. Proves the receipt existed at tsa_timestamp regardless of ZexRail's clock.",
+      "additionalProperties": false,
+      "required": ["tsa_serial", "tsa_issuer", "tsa_timestamp", "tsa_token_hash"],
+      "properties": {
+        "tsa_serial": {
+          "type": "string",
+          "description": "Serial number of the TSA certificate that issued this token",
+          "maxLength": 64
+        },
+        "tsa_issuer": {
+          "type": "string",
+          "description": "Distinguished name of the Timestamp Authority",
+          "maxLength": 256
+        },
+        "tsa_timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "UTC timestamp as recorded by the TSA — independent of ZexRail clock"
+        },
+        "tsa_token_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 of the DER-encoded RFC 3161 timestamp token. Token stored in Evidence Ledger."
+        }
+      }
+    },
+    "key_id": {
+      "type": "string",
+      "pattern": "^key_[0-9a-f]{8}$",
+      "description": "ID of the specific Ed25519 key that signed this receipt. Enables historical key lookup for receipts signed before a key rotation."
+    },
+    "causality": {
+      "type": "object",
+      "description": "Links this receipt to its position in a multi-agent workflow causal chain.",
+      "additionalProperties": false,
+      "required": ["workflow_id", "depth"],
+      "properties": {
+        "caused_by_receipt_id": {
+          "type": "string",
+          "pattern": "^vrt_[0-9a-f]{64}$",
+          "description": "The VerityReceipt that triggered this settlement. Null for root receipts."
+        },
+        "workflow_id": {
+          "type": "string",
+          "pattern": "^wf_[0-9a-f]{8}$",
+          "description": "Groups all receipts that are part of one multi-agent workflow."
+        },
+        "depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "0 = root (initiated by human or external trigger). N = Nth step in causal chain."
+        }
+      }
     }
   },
   "$defs": {
@@ -196,6 +253,40 @@
           "type": "string",
           "format": "date-time",
           "description": "When measured."
+        },
+        "verifier_attestation": {
+          "type": "object",
+          "description": "Cryptographic attestation from the external verifier for probabilistic conditions. Absent for deterministic conditions.",
+          "additionalProperties": false,
+          "required": ["verifier_id", "verifier_public_key", "signed_at", "payload_hash", "signature"],
+          "properties": {
+            "verifier_id": {
+              "type": "string",
+              "maxLength": 128,
+              "description": "ID of the external verifier agent or service"
+            },
+            "verifier_public_key": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 128,
+              "description": "Base64url Ed25519 public key of the external verifier"
+            },
+            "signed_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "payload_hash": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "description": "SHA-256 of canonical_json(condition_id + result + confidence_bps + signed_at)"
+            },
+            "signature": {
+              "type": "string",
+              "minLength": 32,
+              "maxLength": 256,
+              "description": "Base64url Ed25519 signature over payload_hash"
+            }
+          }
         }
       }
     },
@@ -245,6 +336,17 @@
           "type": "array",
           "items": { "$ref": "#/$defs/PolicyOverride" },
           "description": "Any policy overrides active."
+        },
+        "policy_content_hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "SHA-256 of the canonical JSON of the policy document that governed this decision. Independently verifiable at GET /xap/v1/policies/{policy_version}."
+        },
+        "policy_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL where the policy document can be retrieved and its hash verified.",
+          "maxLength": 256
         }
       }
     },

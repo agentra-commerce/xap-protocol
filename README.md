@@ -92,6 +92,17 @@ REVERSED  ->  settlement reversed via journal entry
 
 `UNKNOWN` is first-class. The system never pretends to know something it does not.
 
+### Institutional-Grade Audit Trail
+
+XAP v0.3 adds five fields to the VerityReceipt that close the gap between
+agent-to-agent settlements and human-auditable financial records:
+
+- **RFC 3161 timestamps** — independent temporal proof, not just system clocks
+- **Policy content hashing** — the exact governing rules are retrievable by hash
+- **Key rotation history** — historical receipts verifiable even after key changes
+- **Causal chains** — multi-agent workflow graphs are fully navigable
+- **External attestation** — probabilistic verifiers sign their results cryptographically
+
 ### Append-Only Reputation
 
 An agent's execution history is permanently attached to its identity. Trust is computable rather than assumed.
@@ -138,6 +149,8 @@ All schemas in `/xap/schemas/`. JSON Schema Draft 2020-12.
 | `ExecutionReceipt` | `/xap/schemas/execution-receipt.json` | Complete — v0.2 |
 | `VerityReceipt` | `/xap/schemas/verity-receipt.json` | Complete — v0.2 |
 | `RegistryQuery` | `/xap/schemas/registry-query.json` | Complete — v0.2 |
+| `PolicyVersion` | `/xap/schemas/policy-version.json` | Complete — v0.3 |
+| `AgentKeyHistory` | `/xap/schemas/agent-key-history.json` | Complete — v0.3 |
 
 115 validation tests passing across all primitives.
 

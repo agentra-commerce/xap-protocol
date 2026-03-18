@@ -1,0 +1,16 @@
+{
+  "version": "xap-v0.2",
+  "content_hash": "sha256:59caae93f21bb5f89641b6b259522628344776fc3cb12f97c91580c1fbc12930",
+  "effective_from": "2026-03-01T00:00:00Z",
+  "effective_until": null,
+  "rules": {
+    "condition_types": ["deterministic", "probabilistic", "human_approval"],
+    "outcome_states": ["SUCCESS", "FAIL", "UNKNOWN", "DISPUTED", "REVERSED", "TIMEOUT", "PARTIAL"],
+    "max_counter_rounds": 20,
+    "bps_total_required": 10000,
+    "money_unit": "minor_units",
+    "chargeback_options": ["full_refund", "partial_refund", "no_refund"],
+    "signing_algorithm": "Ed25519",
+    "schema_format": "json-schema-2020-12"
+  }
+}

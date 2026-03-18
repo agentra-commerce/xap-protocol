@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xap-protocol.org/schemas/policy-version.json",
+  "title": "PolicyVersion",
+  "description": "The exact rules that governed XAP settlement decisions at a given version. Content-addressed by SHA-256.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "content_hash",
+    "effective_from",
+    "rules"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^xap-v\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Version string — e.g. xap-v0.2"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "description": "SHA-256 of canonical_json(rules). Verifiable offline."
+    },
+    "effective_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effective_until": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Null means currently active"
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "condition_types",
+        "outcome_states",
+        "max_counter_rounds",
+        "bps_total_required",
+        "money_unit",
+        "chargeback_options",
+        "signing_algorithm",
+        "schema_format"
+      ],
+      "properties": {
+        "condition_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "outcome_states": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "max_counter_rounds": { "type": "integer" },
+        "bps_total_required": { "type": "integer" },
+        "money_unit": { "type": "string" },
+        "chargeback_options": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "signing_algorithm": { "type": "string" },
+        "schema_format": { "type": "string" }
+      }
+    }
+  }
+}

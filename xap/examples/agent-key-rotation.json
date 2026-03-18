@@ -1,0 +1,23 @@
+{
+  "agent_id": "agnt_7f3a9b2c",
+  "keys": [
+    {
+      "key_id": "key_00000001",
+      "public_key": "MCowBQYDK2VwAyEAOriginalKeyBase64UrlEncodedHere",
+      "active_from": "2026-01-15T00:00:00Z",
+      "active_until": "2026-03-01T00:00:00Z",
+      "rotation_reason": "initial",
+      "successor_key_id": "key_00000002",
+      "self_signature": "rotation-attestation-signature-base64url"
+    },
+    {
+      "key_id": "key_00000002",
+      "public_key": "MCowBQYDK2VwAyEANewRotatedKeyBase64UrlEncodedHere",
+      "active_from": "2026-03-01T00:00:00Z",
+      "active_until": null,
+      "rotation_reason": "scheduled",
+      "successor_key_id": null,
+      "self_signature": "new-key-signs-predecessor-attestation-base64url"
+    }
+  ]
+}

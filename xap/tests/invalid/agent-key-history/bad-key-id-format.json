@@ -1,0 +1,10 @@
+{
+  "agent_id": "agnt_7f3a9b2c",
+  "keys": [
+    {
+      "key_id": "badid",
+      "public_key": "MCowBQYDK2VwAyEAOriginalKeyBase64UrlEncodedHere",
+      "active_from": "2026-01-15T00:00:00Z"
+    }
+  ]
+}
