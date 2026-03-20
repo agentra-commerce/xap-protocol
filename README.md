@@ -16,7 +16,7 @@
 
 AI agents can think, reason, code, search, and orchestrate. But when two agents need to do business with each other, there is no shared language for how that happens.
 
-No standard way to negotiate a price. No way to escrow funds against a conditional outcome. No way to split payment across five agents that contributed to one result. No way to prove, months later, exactly why a settlement resolved the way it did.
+No standard way to negotiate a price. No way to hold funds pending verification of a conditional outcome. No way to split payment across five agents that contributed to one result. No way to prove, months later, exactly why a settlement resolved the way it did.
 
 Stripe and OpenAI built ACP for agent-assisted shopping. Google built AP2 for human-authorized agent payments. Coinbase built x402 for pay-per-request API access.
 
@@ -70,7 +70,7 @@ OFFER  ->  COUNTER  ->  ACCEPT  or  REJECT
 
 Four states. Time-bound offers. Conditional pricing. SLA declared before execution. Every state transition signed and permanent.
 
-### Conditional Escrow
+### Conditional Hold
 
 The primitive is not "Agent A pays Agent B." It is: Agent A locks funds. Agent B performs work. A verifiable condition is checked. Funds release if the condition passes. No money ever sits in limbo.
 
@@ -102,6 +102,23 @@ agent-to-agent settlements and human-auditable financial records:
 - **Key rotation history** — historical receipts verifiable even after key changes
 - **Causal chains** — multi-agent workflow graphs are fully navigable
 - **External attestation** — probabilistic verifiers sign their results cryptographically
+
+### Federation Hints
+
+The `AgentManifest` supports an optional `federation_hints` field for cross-registry portability. When an agent is registered on multiple XAP-compatible registries, `federation_hints` lets counterparties discover those alternate registrations and verify portable identity proofs.
+
+```json
+{
+  "federation_hints": {
+    "also_registered_at": [
+      "https://other-registry.example.com"
+    ],
+    "identity_portable_proof": "xap_port_proof_abc123"
+  }
+}
+```
+
+The `also_registered_at` array lists other registry URLs where the same agent identity is registered. The `identity_portable_proof` is a cryptographic token that any listed registry can verify to confirm the agent controls the same key pair. This enables multi-registry discovery without centralized coordination.
 
 ### Append-Only Reputation
 

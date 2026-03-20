@@ -1,0 +1,21 @@
+{
+  "settlement_id": "stl_4b7c9e2f",
+  "negotiation_id": "neg_8a2f4c1d",
+  "state": "PENDING_LOCK",
+  "payer_agent": "agent_7f3a9b2c",
+  "payee_agents": [{"agent_id": "agent_2d8e5f1a", "share_bps": 10000, "role": "primary_executor"}],
+  "total_amount_minor_units": 500,
+  "currency": "USD",
+  "adapter": "stripe",
+  "conditions": [{"condition_id": "cond_a1b2", "type": "deterministic", "check": "http_status_200", "verifier": "engine", "required": true}],
+  "timeout_seconds": 30,
+  "on_timeout": "full_refund",
+  "on_partial_completion": "pro_rata",
+  "on_failure": "full_refund",
+  "chargeback_policy": "proportional",
+  "idempotency_key": "idem_DUPLICATE",
+  "finality_class": "reversible",
+  "xap_version": "0.2.0",
+  "created_at": "2026-03-15T14:30:00Z",
+  "signature": "ed25519:c2V0dGxlbWVudF9zaW1wbGVfc2ln"
+}

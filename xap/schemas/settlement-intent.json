@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://xap.agentralabs.tech/schemas/v0.2/settlement-intent.json",
   "title": "SettlementIntent",
-  "description": "XAP v0.2 — The escrow instruction. Funds lock, conditions verify, funds release or refund. The core primitive. Every field, every constraint, every failure mode defined with zero ambiguity.",
+  "description": "XAP v0.2 — The conditional hold instruction. Funds lock, conditions verify, funds release or refund. The core primitive. Every field, every constraint, every failure mode defined with zero ambiguity.",
   "type": "object",
   "required": [
     "settlement_id",
@@ -57,7 +57,7 @@
     "payer_agent": {
       "type": "string",
       "pattern": "^agent_[a-f0-9]{8}$",
-      "description": "Agent locking funds into escrow."
+      "description": "Agent locking funds into a payment hold. BREAKING: field rename needed in v0.4 — escrow → payment_hold"
     },
     "payee_agents": {
       "type": "array",
